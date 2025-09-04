@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Solicitudes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --pending-bg: #fff6e6;
+            --progress-bg: #e6f7ff;
+            --completed-bg: #e6fff6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        h1 {
+            font-size: 32px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+        
+        .input-section {
+            display: flex;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.5s ease;
+        }
+        
+        #taskInput {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #eaeaea;
+            border-radius: 12px 0 0 12px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        #taskInput:focus {
+            border-color: var(--primary);
+        }
+        
+        #addBtn {
+            padding: 16px 25px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 0 12px 12px 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        #addBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+        
+        .columns-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .column {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .column-header {
+            padding: 20px;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .pending .column-header {
+            background: linear-gradient(to right, #ff9a3c, #ff6b6b);
+        }
+        
+        .progress .column-header {
+            background: linear-gradient(to right, #4cc9f0, #4361ee);
+        }
+        
+        .completed .column-header {
+            background: linear-gradient(to right, #2ecc71, #1abc9c);
+        }
+        
+        .task-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .task-list {
+            padding: 20px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .pending .task-list {
+            background-color: var(--pending-bg);
+        }
+        
+        .progress .task-list {
+            background-color: var(--progress-bg);
+        }
+        
+        .completed .task-list {
+            background-color: var(--completed-bg);
+        }
+        
+        .task-item {
+            background: white;
+            padding: 16px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            animation: taskAppear 0.4s ease;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: grab;
+        }
+        
+        .task-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .task-text {
+            margin-bottom: 12px;
+            word-break: break-word;
+        }
+        
+        .task-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .task-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-progress {
+            background: #4cc9f0;
+            color: white;
+        }
+        
+        .btn-progress:hover {
+            background: #3aa8d0;
+        }
+        
+        .btn-complete {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .btn-complete:hover {
+            background: #25a25a;
+        }
+        
+        .btn-delete {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #ee5253;
+        }
+        
+        .btn-reopen {
+            background: #f9ca24;
+            color: white;
+        }
+        
+        .btn-reopen:hover {
+            background: #f0932b;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray);
+        }
+        
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        /* Animaciones */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes taskAppear {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .task-item.dragging {
+            opacity: 0.6;
+            background: #f1f9ff;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .columns-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-section {
+                flex-direction: column;
+            }
+            
+            #taskInput {
+                border-radius: 12px;
+                margin-bottom: 10px;
+            }
+            
+            #addBtn {
+                border-radius: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h1>Gestión de Solicitudes</h1>
+            </div>
+        </header>
+        
+        <div class="input-section">
+            <input type="text" id="taskInput" placeholder="Describe tu solicitud aquí...">
+            <button id="addBtn">
+                <i class="fas fa-plus"></i> Agregar
+            </button>
+        </div>
+        
+        <div class="columns-container">
+            <!-- Columna Pendientes -->
+            <div class="column pending">
+                <div class="column-header">
+                    <span><i class="fas fa-clock"></i> Pendientes</span>
+                    <span class="task-count" id="pending-count">0</span>
+                </div>
+                <div class="task-list" id="pending-tasks">
+                    <!-- Tareas pendientes se insertarán aquí -->
+                </div>
+            </div>
+            
+            <!-- Columna En Progreso -->
+            <div class="column progress">
+                <div class="column-header">
+                    <span><i class="fas fa-cog"></i> En Progreso</span>
+                    <span class="task-count" id="progress-count">0</span>
+                </div>
+                <div class="task-list" id="progress-tasks">
+                    <!-- Tareas en progreso se insertarán aquí -->
+                </div>
+            </div>
+            
+            <!-- Columna Completadas -->
+            <div class="column completed">
+                <div class="column-header">
+                    <span><i class="fas fa-check-circle"></i> Completadas</span>
+                    <span class="task-count" id="completed-count">0</span>
+                </div>
+                <div class="task-list" id="completed-tasks">
+                    <!-- Tareas completadas se insertarán aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Referencias a elementos del DOM
+            const taskInput = document.getElementById('taskInput');
+            const addBtn = document.getElementById('addBtn');
+            const pendingTasks = document.getElementById('pending-tasks');
+            const progressTasks = document.getElementById('progress-tasks');
+            const completedTasks = document.getElementById('completed-tasks');
+            const pendingCount = document.getElementById('pending-count');
+            const progressCount = document.getElementById('progress-count');
+            const completedCount = document.getElementById('completed-count');
+            
+            // Cargar tareas desde localStorage
+            let tasks = JSON.parse(localStorage.getItem('solicitudTasks')) || [];
+            
+            // Función para guardar tareas en localStorage
+            function saveTasks() {
+                localStorage.setItem('solicitudTasks', JSON.stringify(tasks));
+                updateCounters();
+            }
+            
+            // Función para actualizar contadores
+            function updateCounters() {
+                const pending = tasks.filter(task => task.status === 'pending').length;
+                const progress = tasks.filter(task => task.status === 'progress').length;
+                const completed = tasks.filter(task => task.status === 'completed').length;
+                
+                pendingCount.textContent = pending;
+                progressCount.textContent = progress;
+                completedCount.textContent = completed;
+            }
+            
+            // Función para renderizar tareas
+            function renderTasks() {
+                // Limpiar las listas
+                pendingTasks.innerHTML = '';
+                progressTasks.innerHTML = '';
+                completedTasks.innerHTML = '';
+                
+                // Si no hay tareas, mostrar estado vacío
+                if (tasks.length === 0) {
+                    pendingTasks.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>No hay solicitudes</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Renderizar cada tarea en la columna correspondiente
+                tasks.forEach(task => {
+                    const taskElement = createTaskElement(task);
+                    
+                    if (task.status === 'pending') {
+                        pendingTasks.appendChild(taskElement);
+                    } else if (task.status === 'progress') {
+                        progressTasks.appendChild(taskElement);
+                    } else if (task.status === 'completed') {
+                        completedTasks.appendChild(taskElement);
+                    }
+                });
+                
+                updateCounters();
+            }
+            
+            // Función para crear elemento de tarea
+            function createTaskElement(task) {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                taskItem.dataset.id = task.id;
+                
+                // Diferente contenido según el estado
+                if (task.status === 'pending') {
+                    taskItem.innerHTML = `
+                        <div class="task-text">${task.text}</div>
+                        <div class="task-actions">
+                            <button class="task-btn btn-progress" onclick="moveToProgress(${task.id})">
+                                <i class="fas fa-play"></i> Iniciar
+                            </button>
+                            <button class="task-btn btn-delete" onclick="deleteTask(${task.id})">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    `;
+                } else if (task.status === 'progress') {
+                    taskItem.innerHTML = `
+                        <div class="task-text">${task.text}</div>
+                        <div class="task-actions">
+                            <button class="task-btn btn-complete" onclick="moveToCompleted(${task.id})">
+                                <i class="fas fa-check"></i> Completar
+                            </button>
+                            <button class="task-btn btn-delete" onclick="deleteTask(${task.id})">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    `;
+                } else if (task.status === 'completed') {
+                    taskItem.innerHTML = `
+                        <div class="task-text">${task.text}</div>
+                        <div class="task-actions">
+                            <button class="task-btn btn-reopen" onclick="moveToPending(${task.id})">
+                                <i class="fas fa-redo"></i> Reabrir
+                            </button>
+                            <button class="task-btn btn-delete" onclick="deleteTask(${task.id})">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                return taskItem;
+            }
+            
+            // Función para agregar una nueva tarea
+            function addTask() {
+                const text = taskInput.value.trim();
+                
+                if (text) {
+                    const newTask = {
+                        id: Date.now(),
+                        text: text,
+                        status: 'pending'
+                    };
+                    
+                    tasks.push(newTask);
+                    saveTasks();
+                    renderTasks();
+                    taskInput.value = '';
+                    taskInput.focus();
+                }
+            }
+            
+            // Funciones para cambiar el estado de las tareas
+            window.moveToProgress = function(id) {
+                tasks = tasks.map(task => {
+                    if (task.id === id) {
+                        return { ...task, status: 'progress' };
+                    }
+                    return task;
+                });
+                
+                saveTasks();
+                renderTasks();
+            };
+            
+            window.moveToCompleted = function(id) {
+                tasks = tasks.map(task => {
+                    if (task.id === id) {
+                        return { ...task, status: 'completed' };
+                    }
+                    return task;
+                });
+                
+                saveTasks();
+                renderTasks();
+            };
+            
+            window.moveToPending = function(id) {
+                tasks = tasks.map(task => {
+                    if (task.id === id) {
+                        return { ...task, status: 'pending' };
+                    }
+                    return task;
+                });
+                
+                saveTasks();
+                renderTasks();
+            };
+            
+            // Función para eliminar una tarea
+            window.deleteTask = function(id) {
+                tasks = tasks.filter(task => task.id !== id);
+                saveTasks();
+                renderTasks();
+            };
+            
+            // Event Listeners
+            addBtn.addEventListener('click', addTask);
+            
+            taskInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTask();
+                }
+            });
+            
+            // Inicializar la aplicación
+            renderTasks();
+            
+            // Funcionalidad de arrastrar (mejora futura)
+            setupDragAndDrop();
+            
+            function setupDragAndDrop() {
+                const taskItems = document.querySelectorAll('.task-item');
+                const columns = document.querySelectorAll('.task-list');
+                
+                taskItems.forEach(item => {
+                    item.addEventListener('dragstart', () => {
+                        item.classList.add('dragging');
+                    });
+                    
+                    item.addEventListener('dragend', () => {
+                        item.classList.remove('dragging');
+                    });
+                });
+                
+                columns.forEach(column => {
+                    column.addEventListener('dragover', e => {
+                        e.preventDefault();
+                    });
+                    
+                    column.addEventListener('drop', e => {
+                        e.preventDefault();
+                        const draggingItem = document.querySelector('.dragging');
+                        if (draggingItem) {
+                            column.appendChild(draggingItem);
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
